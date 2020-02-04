@@ -1,0 +1,395 @@
+<html>
+  <head>
+    <style>
+    	body {
+			  margin: 0;
+              font-family: "Helvetica Neue", sans-serif;
+              			}
+
+			#select, #legend {
+				margin: 0 auto;
+				display: table;
+			}
+
+			#select select {
+				margin-right: 100px;
+			}
+
+			#legend {
+				margin: 5px auto;
+			}
+			#legend text {
+				font-size: .7em;
+			}
+
+			.subunit.district {
+			  fill: #ddd;
+			  stroke: #fff;
+			  stroke-width: .5px;
+			}
+			.subunit.state {
+				fill: none;
+        stroke: #000;
+        stroke-width: .2px;
+			}
+			.subunit-boundary {
+			  fill: none;
+			  stroke: #3a403d;
+            }
+            .d3-tip {
+
+                background-color: #000;
+                position: topright;
+                padding: 2px 5px;
+                border-radius: 10px;
+                color: white;
+                top: -30px;
+                left: 60px;
+                white-space: pre-line;
+              }
+          
+    </style>
+  </head>
+  <body>
+  
+  <div id="select">
+    <select id="column"></select>
+    <select id="breaks"></select>
+    <select id="count"></select>
+    <select id="colors"></select>
+    <button id="states" data="showing">Hide states</button>
+</div>
+<div id="legend"></div>
+<div id="map"></div>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.0/topojson.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/1.3.4/chroma.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Raleway" rel='stylesheet' type='text/css'>
+<script>
+    var xColumn = "longitude";
+    var yColumn = "latitude";
+    var rColumn = "population";
+    var peoplePerPixel = 50000;
+    
+    var width = window.innerWidth,
+         height = window.innerHeight ;
+
+    var projection = d3.geoMercator();
+    var path = d3.geoPath()
+            .projection(projection);       
+          
+
+    var svg = d3.select("#map").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+    var legendHeight = 22,
+        legendBarHeight = 10,
+        legendWidth = width / 2;
+
+    var legend = d3.select("#legend").append("svg")
+              .attr("width", legendWidth)
+              .attr("height", legendHeight);
+
+    var legendX = d3.scaleLinear()
+			  .range([0, legendWidth]);
+
+    var t = d3.transition()
+              .duration(750);
+              
+    var columns = [{
+            name: "Company Name",
+            column: "sex_ratio"
+        },
+        {
+            name: "RPM",
+            column: "muslim_pct"
+        },
+        {
+            name: "Battery Voltage",
+            column: "houseless_per_lakh"
+        }];   
+
+        columns.forEach(function(d){
+            $("#select #column").append("<option value='" + d.column + "'>" + d.name + "</option>")
+        });
+        var breaks = [
+        {
+            type: "Logarithmic",
+            value: "l"
+          }
+          ];
+
+          breaks.forEach(function(d){
+            $("#select #breaks").append("<option value='" + d.value + "'>" + d.type + "</option>");
+          });
+
+          [3,4,5,6,7,8].forEach(function(d){
+            $("#select #count").append("<option value='" + d + "'>" + d + "</option>");
+          });
+          $("#select #count").val(4);
+
+          var colors = {
+            "OrRd": {
+			    3:["#fee8c8", "#fdbb84", "#e34a33"],
+			    4:["#fef0d9", "#fdcc8a", "#fc8d59", "#d7301f"],
+			    5:["#fef0d9", "#fdcc8a", "#fc8d59", "#e34a33", "#b30000"],
+			    6:["#fef0d9", "#fdd49e", "#fdbb84", "#fc8d59", "#e34a33", "#b30000"],
+			    7:["#fef0d9", "#fdd49e", "#fdbb84", "#fc8d59", "#ef6548", "#d7301f", "#990000"],
+			    8:["#fff7ec", "#fee8c8", "#fdd49e", "#fdbb84", "#fc8d59", "#ef6548", "#d7301f", "#990000"]
+			  },
+        };
+        Object.keys(colors).forEach(function(d){
+            $("#select #colors").append("<option value='" + d + "'>" + d + "</option>");
+          });
+
+          d3.queue()
+			  .defer(d3.json, "file.json")
+			  .defer(d3.csv, "data.csv")
+			  .defer(d3.json, "states.json")
+              .await(ready);
+
+      
+              
+        function ready(error, map, data, states) {
+            if (error) throw error;
+
+            var boundary = centerZoom(map);
+            drawSubUnits(map, "district");
+            drawOuterBoundary(map, boundary);
+
+            var buckets = colorSubUnits(data, $("#select #breaks").val(), $("#select #count").val(), $("#select #colors").val(), $("#select #column").val());
+            drawLegend(buckets, $("#select #colors").val());
+
+            $("#select select").change(function(){
+              buckets = colorSubUnits(data, $("#select #breaks").val(), $("#select #count").val(), $("#select #colors").val(), $("#select #column").val());
+              drawLegend(buckets, $("#select #colors").val());
+            });
+
+            drawSubUnits(states, "state");
+
+            $("#select #states").click(function(){
+                if ($(this).attr("data") == "showing"){
+                    $(".subunit.state").fadeOut();
+                    $(this).text("Show states");
+                    $(this).attr("data", "hiding");
+                } else {
+                    $(".subunit.state").fadeIn();
+                    $(this).text("Hide states");
+                    $(this).attr("data", "showing");
+                }
+
+            });
+
+          };
+          function drawLegend(buckets, colorScheme){
+
+            // update legendX domain
+            legendX.domain([buckets[0].x, buckets[buckets.length - 1].x + buckets[buckets.length - 1].width]);
+
+            // JOIN
+            var legendRect = legend.selectAll(".legend-rect")
+              .data(buckets, function(d){ return d.bucket; });
+
+            var legendNumber = legend.selectAll(".legend-number")
+              .data(buckets, function(d){ return d.bucket; });
+
+            var legendMax = legend.selectAll(".legend-max")
+              .data([buckets[buckets.length - 1].x + buckets[buckets.length - 1].width]);
+
+            // EXIT
+            legendRect.exit()
+              .transition(t)
+                .attr("opacity", 1e-6)
+                .remove();
+
+            legendNumber.exit()
+              .transition(t)
+                .attr("opacity", 1e-6)
+                .remove();
+
+            // UPDATE
+            legendRect
+              .transition(t)
+                .attr("width", function(d){ return legendX(d.x + d.width); })
+                .attr("x", function(d){ return legendX(d.x); })
+                .attr("fill", function(d){ return d.color });
+            
+            legendNumber
+              .transition(t)
+                .attr("x", function(d){ return legendX(d.x); })
+                .text(function(d){ return d.x.toFixed(2); });
+
+            legendMax
+                .attr("x", function(d){ return legendX(d); })
+                .text(function(d){ return d.toFixed(2); })
+
+            // ENTER
+            legendRect.enter().append("rect")
+                .attr("class", "legend-rect")
+                .attr("y", 0)
+                .attr("height", legendBarHeight)
+                .attr("x", function(d){ return legendX(d.x); })
+                .attr("fill", function(d){ return d.color })
+                .attr("width", function(d){ return legendX(d.x + d.width); });
+
+            legendNumber.enter().append("text")
+                .attr("class", "legend-number")
+                .attr("y", legendHeight)
+                .attr("x", function(d){ return legendX(d.x); })
+                .text(function(d){ return d.x.toFixed(2); });
+                
+            legendMax.enter().append("text")
+                .attr("class", "legend-max")
+                .attr("y", legendHeight)
+                .attr("x", function(d){ return legendX(d); })
+                .style("text-anchor", "end")
+                .text(function(d){ return d.toFixed(2); });
+
+          }
+          function colorSubUnits(data, breakType, breakCount, colorScheme, value){
+			  
+            // string to number
+            var nums = data.filter(function(d){ return d[value] != ""; }).map(function(d){ return +d[value]; });
+            
+          var buckets = chroma.limits(nums, breakType, breakCount);
+            
+          svg.selectAll(".subunit.district")
+            .transition(t)
+              .style("fill", function(d){
+                // lookup district
+                var district = data.filter(function(e){
+                  return e.district == d.properties.district && e.state == d.properties.st_nm;
+                });
+                
+                if (district.length == 0){
+                  return "black";
+                } else {
+                  district = district[0];
+
+                  if (district[value] == "") return "black";
+
+                  var bucketNumber = d3.min(buckets.map(function(bucket, i){
+                    if (district[value] <= bucket){
+                      return i;
+                    }
+                  }));
+                  
+                  return colors[colorScheme][breakCount][bucketNumber - 1];
+                }
+                
+              });
+              var arr = [];
+			  buckets.forEach(function(d, i){
+
+			    if (i != 0){
+			      var obj = {};
+			      obj.bucket = i;
+			      obj.x = buckets[i - 1];
+			      obj.width = d - obj.x;
+			      obj.color = colors[colorScheme][breakCount][i - 1];
+			      arr.push(obj);
+			    }
+			    
+			  });
+			  return arr;
+            }
+            function drawOuterBoundary(data, boundary){
+                svg.append("path")
+                    .datum(boundary)
+                    .attr("d", path)
+                    .attr("class", "subunit-boundary");
+              }
+  
+        function drawSubUnits(data, cl){
+                svg.selectAll(".subunit." + cl)
+              .data(topojson.feature(data, data.objects.polygons).features)
+            .enter().append("path")
+              .attr("class", "subunit " + cl)
+              .attr("d", path);
+              }
+
+              function centerZoom(data){
+                var o = topojson.mesh(data, data.objects.polygons, function(a, b) { return a === b; });
+  
+                projection
+                    .scale(1)
+                    .translate([0, 0]);
+  
+                var b = path.bounds(o),
+                    s = 1 / Math.max((b[1][0] - b[0][0]) / width, (b[1][1] - b[0][1]) / height),
+                    t = [(width - s * (b[1][0] + b[0][0])) / 2, (height - s * (b[1][1] + b[0][1])) / 2];
+  
+                projection
+                    .scale(s)
+                    .translate(t);
+  
+                return o;
+              }
+
+              var tip = d3.tip()
+              .attr("class", "d3-tip")
+              .offset([-10, 0])
+              .html(function (d) {
+                return "    " + "<strong>CITY </strong>" + d.states + "\n" +
+                  "VIM  " + d.deviceId
+                  + "\n " + "<strong>Battery voltage 1:</strong> " + d.BatteryvoltageA
+                  + "  " + "Battery voltage 2: " + d.BatteryvoltageB
+                  + "\n " + "Battery voltage 3: " + d.BatteryvoltageC
+                  + "  " + "Battery voltage 4: " + d.BatteryvoltageD
+                  + "\n " + "Battery voltage 5: " + d.BatteryvoltageE
+                  + "  " + "Battery voltage 6: " + d.BatteryvoltageF
+                  + "\n " + "Battery voltage 7: " + d.BatteryvoltageG
+                  + "  " + "Battery voltage 8: " + d.bv8
+                  + "\n " + "Battery voltage 9: " + d.bv9
+                  + "  " + "Battery voltage 10: " + d.bv10
+                  + "\n " + "Battery voltage 11: " + d.bv11
+                  + "  " + "Battery voltage 12: " + d.bv12
+      
+              });
+      
+            svg.call(tip);
+            var rScale = d3.scaleSqrt();
+      
+            function render(data) {
+              svg.selectAll('rect')
+                .enter().append('rect')
+                .attr('width', 700)
+                .attr('height', 900)
+      
+             
+      
+      
+              var circles = svg.selectAll("circle").data(data);
+              circles.enter().append("svg:circle")
+                .attr("cx", function (d) { return projection([d[xColumn], d[yColumn]])[0]; })
+                .attr("cy", function (d) { return projection([d[xColumn], d[yColumn]])[1]; })
+                .attr("r", 2)
+                .on("mouseover", tip.show)
+                .on("mouseout", tip.hide)
+                .attr("optacity", 0.05)
+                .attr("fill", "red");
+              circles.exit().remove();
+      
+      
+            }
+      
+            function type(d) {
+              d.latitude = +d.latitude;
+              d.longitude = +d.longitude;
+              d.population = +d.population;
+      
+              return d;
+            }
+      
+            d3.csv("companydata.csv", type, render);
+      
+          
+
+            </script>
+
+        </body>
+      </html>
+
