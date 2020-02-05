@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <title>Vecmocon Data visualization</title>
-  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="https://d3js.org/topojson.v2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
   <link href="https://fonts.googleapis.com/css?family=Raleway" rel='stylesheet' type='text/css'>
@@ -38,15 +38,14 @@
       stroke-width: .5px;
       stroke-opacity: .05;
     }
-    .circle{
-      stroke : red;
+
+    .circle {
+      stroke: red;
       stroke-width: 0.02%;
     }
 
 
-   
     .d3-tip {
-
       background-color: #000;
       position: topright;
       padding: 2px 5px;
@@ -56,8 +55,6 @@
       left: 60px;
       white-space: pre-line;
     }
-
-
 
     .map-font {
       fill: #ddc;
@@ -82,54 +79,45 @@
   <div id="legend"></div>
   <div id="map">
     <button id="mybtn" type="button" class="btn btn-success">company A data</button>
-    <label>Choose a company
-      <select class="company" name="company">
-        <option value="">Select One …</option>
-        <option id="avalue">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-      </select>
-    </label>
+    <label style="color: white;">Choose a company</label>
+    <select class="company" name="company" id="company-selector">
+      <option value="">Select One …</option>
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+    </select>
   </div>
 
 
   <script>
-    var globaldata;
-    var listen;
-
-    d3.csv("datasetnew.csv", function (data) {
-      globaldata = data.filter(function (d) {
-        if (d["companyName"] == "A") {
-          return d;
-        }
-      })
-      document.getElementById("mybtn").addEventListener("click", function () {
-        listen = globaldata;
-        console.log(listen);
-      })
-
-      document.getElementById("avalue").value = globaldata;
-    })
-
+    const mapFile = "file.json";
+    const dataFile = "datasetnew.csv";
     var xColumn = "longitude";
     var yColumn = "latitude";
     var rColumn = "population";
     var peoplePerPixel = 50000;
+    var margin = {
+      left: 0,
+      top: 0,
+      right: 0,
+      bottom: 0
+    };
 
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    var worldData;
+    var markerData;
+    var circles;
 
-    var margin = { left: 0, top: 0, right: 0, bottom: 0 };
-
-    var width = window.innerWidth,
-      height = window.innerHeight;
+    var companySelector = document.getElementById("company-selector")
+    companySelector.addEventListener("change", drawMarkers);
 
     var projection = d3.geoMercator()
       .scale(1200)
       .center([150.824707, 29.836006])
-      .rotate([70, 0])
-      ;
+      .rotate([70, 0]);
     var path = d3.geoPath().projection(projection);
     var graticule = d3.geoGraticule();
-
 
     var svg = d3.select("#map").append("svg")
       .attr("width", width)
@@ -137,7 +125,6 @@
 
     svg.call(d3.zoom().on('zoom', () => {
       g.attr('transform', d3.event.transform)
-
     }));
 
     svg.append("path")
@@ -145,85 +132,81 @@
       .attr("class", "graticule")
       .attr("d", path);
 
-    const g = svg.append('g');
-
-  
-
-
-    
-
-      d3.json("file.json", function (error, world) {
-        if (error) throw error;
-        console.log(world);
-        var countries = topojson.feature(world, world.objects.polygons).features
-
-        g.selectAll(".countries")
-          .data(countries)
-          .enter()
-          .insert("path", ".graticule")
-          .attr("d", path)
-          .attr("class", "map-font");
-
-
-        var tip = d3.tip()
-          .attr("class", "d3-tip")
-          .offset([-10, 0])
-          .html(function (d) {
-            return d.deviceId
-              + "\n " + "<strong>Battery voltage 1:</strong> " + d.batteryVoltage
-              + d.RPM
-
-          });
-
-        g.call(tip);
-
-        var rScale = d3.scaleSqrt();
-
-        d3.csv("datasetnew.csv", type, render);
-        function render(data) {
-          listen = data;
-          /* const selectElement = document.querySelector('.company')
-          selectElement.addEventListener('change',(event)=>{
-            listen = event.target.value;
-            console.log(listen);
-            }) */
-
-          var circles = g.selectAll("circle").data(listen)
-            .enter().append("svg:circle")
-            .attr("cx", function (d) { return projection([d[xColumn], d[yColumn]])[0]; })
-            .attr("cy", function (d) { return projection([d[xColumn], d[yColumn]])[1]; })
-            .attr("r", 0.005)
-            .on("mouseover", tip.show)
-            .on("mouseout", tip.hide)
-            .attr("class",'circle')
-
-          circles.exit().remove();
-        }
-
-        function type(d) {
-          d.latitude = +d.latitude;
-          d.longitude = +d.longitude;
-          return d;
-        }
-
-        document.getElementById("mybtn").addEventListener("click", render);
-
-      });
-
-  
-
+    g = svg.append('g');
     d3.select(self.frameElement).style("height", height + "px");
 
+    initiate();
+
+    async function initiate() {
+      worldData = await d3.json(mapFile).catch(console.log);
+      markerData = await d3.csv(dataFile, type).catch(console.log);
+      drawMap(worldData);
+      drawMarkers();
+    }
+
+    function type(d) {
+      d.latitude = +d.latitude;
+      d.longitude = +d.longitude;
+      return d;
+    }
+
+    function drawMap(mapData) {
+      var countries = topojson.feature(mapData, mapData.objects.polygons).features;
+      g.selectAll(".countries")
+        .data(countries)
+        .enter()
+        .insert("path", ".graticule")
+        .attr("d", path)
+        .attr("class", "map-font");
+    }
+
+    function drawMarkers() {
+      if (circles) circles.remove();
+      if (!markerData) return;
+      let selectedCompany = companySelector.value;
+      let data = markerData.filter((d) => !selectedCompany.length || d.companyName == selectedCompany);
+
+      console.log("Filtered Data Length:", data.length);
+
+      var tip = d3.tip()
+        .attr("class", "d3-tip")
+        .offset([-10, 0])
+        .html(function (d) {
+          return d.deviceId +
+            "\n " + "<strong>Battery voltage 1:</strong> " + d.batteryVoltage +
+            d.RPM
+
+        });
+
+      g.call(tip);
+
+      var rScale = d3.scaleSqrt();
+
+      circles = g.selectAll("circle").data(data)
+        .enter().append("svg:circle")
+        .attr("cx", function (d) {
+          return projection([d[xColumn], d[yColumn]])[0];
+        })
+        .attr("cy", function (d) {
+          return projection([d[xColumn], d[yColumn]])[1];
+        })
+        .attr("r", 0.005)
+        .on("mouseover", tip.show)
+        .on("mouseout", tip.hide)
+        .attr("class", 'circle')
+
+      circles.exit().remove();
+    }
   </script>
   <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-    crossorigin="anonymous"></script>
+    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous">
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-    crossorigin="anonymous"></script>
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+  </script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-    crossorigin="anonymous"></script>
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
+  </script>
 </body>
 
 </html>
