@@ -28,7 +28,7 @@
     }
 
     path {
-      fill: none;
+      fill: green;
       color: #fff;
     }
 
@@ -40,8 +40,11 @@
     }
 
     .circle {
-      stroke: red;
-      stroke-width: 0.02%;
+      fill:black;
+      fill-opacity: 0.5;
+      stroke :black;
+      stroke-width: 0.1;
+      
     }
 
 
@@ -49,6 +52,7 @@
       background-color: #000;
       position: topright;
       padding: 2px 5px;
+      visibility : hidden;
       border-radius: 10px;
       color: white;
       top: -30px;
@@ -67,6 +71,9 @@
       border: black;
       border-radius: 10px;
     }
+    .map-font :hover{
+      fill :blue
+    }
 
     input {
       position: absolute;
@@ -78,13 +85,34 @@
 <body>
   <div id="legend"></div>
   <div id="map">
-    <button id="mybtn" type="button" class="btn btn-success">company A data</button>
+    <div id="infoBox" style="position: absolute; display: flex;top:118px;word-wrap: break-word; right: 100px;background-color:white;min-width:100px;min-height:100px">
+     
+    </div>
+
+
+   
     <label style="color: white;">Choose a company</label>
     <select class="company" name="company" id="company-selector">
       <option value="">Select One …</option>
-      <option value="A">A</option>
-      <option value="B">B</option>
-      <option value="C">C</option>
+      <option value="Vecmocon Technologies">Vecmocon Technologies</option>
+      <option value="Evy Mobility">Evy Mobility</option>
+      <option value="Napino-Hero">Napino-Hero</option>
+      <option value="Napino-Bajaj">Napino-Bajaj</option>
+      <option value="Vogo">Vogo</option>
+      <option value="Bounce Share">Bounce Share</option>
+      <option value="Qquick">Qquick</option>
+      <option value="Campus Share">Campus Share</option>
+      <option value="Q.Te Bikes">Q.Te Bikes</option>
+      <option value="Kerala Automotive Limited">Kerala Automotive Limited</option>
+      
+    </select>
+    <label style="color: white;">Choose a region</label>
+    <select class="company" name="company" id="region-selector">
+      <option value="">Select One …</option>
+      <option value="Delhi"  onclick=zoomed()>Delhi</option>
+      <option value="Kolkata" onclick = zoomed()>Kolkata</option>
+      <option value="Banglore" onclick=zoomed()>Banglore</option>
+      <option value="Hyderabad">Hyderabad</option>
     </select>
   </div>
 
@@ -103,6 +131,7 @@
       bottom: 0
     };
 
+
     var width = window.innerWidth;
     var height = window.innerHeight;
     var worldData;
@@ -111,6 +140,9 @@
 
     var companySelector = document.getElementById("company-selector")
     companySelector.addEventListener("change", drawMarkers);
+
+    var regionSelector = document.getElementById("region-selector")
+    regionSelector.addEventListener("change", drawMarkers);
 
     var projection = d3.geoMercator()
       .scale(1200)
@@ -122,9 +154,12 @@
     var svg = d3.select("#map").append("svg")
       .attr("width", width)
       .attr("height", height);
-
-    svg.call(d3.zoom().on('zoom', () => {
+     var g = svg.append('g')
+        .attr("width",innerWidth*0.6)
+        .attr("height",innerHeight*0.6)
+       svg.call(d3.zoom().on('zoom', () => {
       g.attr('transform', d3.event.transform)
+                                              
     }));
 
     svg.append("path")
@@ -132,7 +167,8 @@
       .attr("class", "graticule")
       .attr("d", path);
 
-    g = svg.append('g');
+   
+     
     d3.select(self.frameElement).style("height", height + "px");
 
     initiate();
@@ -161,21 +197,30 @@
     }
 
     function drawMarkers() {
+      let data = markerData;
       if (circles) circles.remove();
       if (!markerData) return;
-      let selectedCompany = companySelector.value;
-      let data = markerData.filter((d) => !selectedCompany.length || d.companyName == selectedCompany);
+      let company = companySelector.value;
+      let region  = regionSelector.value;
 
-      console.log("Filtered Data Length:", data.length);
+       data = data.filter((d) => !company.length || d.companyName == company);
+       data = data.filter((d) => !(region.length) || d.region == region);
+
+      console.log("Filtered Data Length:", data.length, "company:", company, 'region:', region);
 
       var tip = d3.tip()
         .attr("class", "d3-tip")
         .offset([-10, 0])
         .html(function (d) {
-          return d.deviceId +
-            "\n " + "<strong>Battery voltage 1:</strong> " + d.batteryVoltage +
-            d.RPM
-
+          delete d.latitude;
+          console.log(d);
+          delete d.longitude;
+          delete d.region;
+          document.getElementById('infoBox').innerHTML ="<p>word-wrap: break-word: "+
+                 Object.keys(d).map(key => `${key}: ${d[key]}`).join("\n")+ "</p>"
+          //return d.deviceId +
+            //"\n " + d.companyName +"\n " + d.soc + "\n " +d.odometer + "\n "+d.manufacturingDate + "\n " +d.OnRoadSince+"\n " +
+            //d.expiryDate;
         });
 
       g.call(tip);
@@ -190,7 +235,7 @@
         .attr("cy", function (d) {
           return projection([d[xColumn], d[yColumn]])[1];
         })
-        .attr("r", 0.005)
+        .attr("r", 0.09)
         .on("mouseover", tip.show)
         .on("mouseout", tip.hide)
         .attr("class", 'circle')
@@ -198,15 +243,7 @@
       circles.exit().remove();
     }
   </script>
-  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous">
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
-  </script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
-  </script>
+ 
 </body>
 
 </html>
