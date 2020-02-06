@@ -82,17 +82,18 @@ function drawMarkers() {
     if (!markerData) return;
     let company = companySelector.value;
     let Region = RegionSelector.value;
-    if (company.length || Region.length) {
-        g.attr('transform', { k: 30.83862430941067, x: data[0].latitude, y: data[0].longitude });
+    // if (company.length || Region.length) {
+    //     g.attr('transform', { k: 30.83862430941067, x: data[0].latitude, y: data[0].longitude });
 
-    } else {
+    // } else {
 
-    }
+    // }
     data = data.filter((d) => !company.length || d.Company_Name == company);
     data = data.filter((d) => !(Region.length) || d.Region == Region);
 
     console.log("Filtered Data Length:", data.length, "company:", company, 'Region:', Region);
     //
+
 
     var tip = d3.tip()
         .attr("class", "d3-tip")
@@ -103,8 +104,13 @@ function drawMarkers() {
             delete d.longitude;
 
             delete d.population;
-            document.getElementById('infoBox').innerHTML = "<p> <h1>Information Box<br><br></h1>" +
-                Object.keys(d).map(key => `<b>${key}</b><br>: ${d[key]}`).join("<br />") + "</p>";
+            document.getElementById('infoBox').innerHTML = `
+            	<div id="info">
+            		<p>
+            			<h1>Information Box</h1><br><br>
+                		${Object.keys(d).map(key => `<b>${key}</b><br>: ${d[key]}`).join("<br />")}
+                	</p>
+                </div>`;
         });
 
     g.call(tip);
@@ -125,6 +131,14 @@ function drawMarkers() {
         .attr("class", 'circle')
 
     circles.exit().remove();
+
+    var circleElements = document.getElementsByClassName("circle");
+    for (var i = circleElements.length - 1; i >= 0; i--) {
+        circleElements[i].addEventListener("mouseleave", () => {
+            console.log('mouseleave');
+            document.getElementById('infoBox').innerHTML = "";
+        });
+    }
 }
 // k: 30.83862430941067
 // x: -11863.92144033446
