@@ -82,12 +82,7 @@ function drawMarkers() {
     if (!markerData) return;
     let company = companySelector.value;
     let Region = RegionSelector.value;
-    if (company.length || Region.length) {
-        g.attr('transform', { k: 30.83862430941067, x: data[0].latitude, y: data[0].longitude });
 
-    } else {
-
-    }
     data = data.filter((d) => !company.length || d.Company_Name == company);
     data = data.filter((d) => !(Region.length) || d.Region == Region);
 
@@ -103,7 +98,7 @@ function drawMarkers() {
             delete d.longitude;
 
             delete d.population;
-            document.getElementById('infoBox').innerHTML = "<p> <h1>Information Box<br><br></h1>" +
+            document.getElementById('infoBox').innerHTML = "<p> <h1>Information Box<br></h1>" +
                 Object.keys(d).map(key => `<b>${key}</b><br>: ${d[key]}`).join("<br />") + "</p>";
         });
 
