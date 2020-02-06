@@ -11,89 +11,32 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-  <style>
-    body {
-      margin: 0;
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      background: black;
-    }
-
-    svg {
-      width: 100%;
-      height: 100%
-    }
-
-    path {
-      fill: green;
-      color: #fff;
-    }
-
-    .graticule {
-      fill: white;
-      stroke: blue;
-      stroke-width: .5px;
-      stroke-opacity: .05;
-    }
-
-    .circle {
-      fill:black;
-      fill-opacity: 0.5;
-      stroke :black;
-      stroke-width: 0.1;
-      
-    }
-
-
-    .d3-tip {
-      background-color: #000;
-      position: topright;
-      padding: 2px 5px;
-      visibility : hidden;
-      border-radius: 10px;
-      color: white;
-      top: -30px;
-      left: 60px;
-      white-space: pre-line;
-    }
-
-    .map-font {
-      fill: #ddc;
-      color: white;
-      position: absolute;
-      top: 50px;
-      left: 10px;
-      z-index: 100;
-      padding: 10px;
-      border: black;
-      border-radius: 10px;
-    }
-    .map-font :hover{
-      fill :blue
-    }
-
-    input {
-      position: absolute;
-      right: 0;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-  <div id="legend"></div>
   <div id="map">
-    <div id="infoBox" style="position: absolute; display: flex;top:118px;word-wrap: break-word; right: 100px;background-color:white;min-width:100px;min-height:100px">
-     
+    <div id="infoBox">
+      <!-- <img src="tab.jpg" height=80x width=250px> -->
+      <h1>Information Box<br></h1>
+      <b>DeviceId<br>Company_Name<br>SOC<br>Odometer<br>population<br>Manufacturing_Date<br>
+        On_Road_Since<br>Expiry_Date</b>
+
+
+
+    </div>
+    <div id="imgbox">
+
+
+
+
     </div>
 
 
-   
+
     <label style="color: white;">Choose a company</label>
     <select class="company" name="company" id="company-selector">
-      <option value="">Select One …</option>
+      <option value="">Default</option>
       <option value="Vecmocon Technologies">Vecmocon Technologies</option>
       <option value="Evy Mobility">Evy Mobility</option>
       <option value="Napino-Hero">Napino-Hero</option>
@@ -104,146 +47,19 @@
       <option value="Campus Share">Campus Share</option>
       <option value="Q.Te Bikes">Q.Te Bikes</option>
       <option value="Kerala Automotive Limited">Kerala Automotive Limited</option>
-      
+
     </select>
-    <label style="color: white;">Choose a region</label>
-    <select class="company" name="company" id="region-selector">
-      <option value="">Select One …</option>
-      <option value="Delhi"  onclick=zoomed()>Delhi</option>
-      <option value="Kolkata" onclick = zoomed()>Kolkata</option>
-      <option value="Banglore" onclick=zoomed()>Banglore</option>
+    <label style="color: white;">Choose a Region</label>
+    <select class="company" name="company" id="Region-selector">
+      <option value="">Default</option>
+      <option value="Delhi">Delhi</option>
+      <option value="Kolkata">Kolkata</option>
+      <option value="Banglore">Banglore</option>
       <option value="Hyderabad">Hyderabad</option>
     </select>
   </div>
+  <script src="main.js"></script>
 
-
-  <script>
-    const mapFile = "file.json";
-    const dataFile = "datasetnew.csv";
-    var xColumn = "longitude";
-    var yColumn = "latitude";
-    var rColumn = "population";
-    var peoplePerPixel = 50000;
-    var margin = {
-      left: 0,
-      top: 0,
-      right: 0,
-      bottom: 0
-    };
-
-
-    var width = window.innerWidth;
-    var height = window.innerHeight;
-    var worldData;
-    var markerData;
-    var circles;
-
-    var companySelector = document.getElementById("company-selector")
-    companySelector.addEventListener("change", drawMarkers);
-
-    var regionSelector = document.getElementById("region-selector")
-    regionSelector.addEventListener("change", drawMarkers);
-
-    var projection = d3.geoMercator()
-      .scale(1200)
-      .center([150.824707, 29.836006])
-      .rotate([70, 0]);
-    var path = d3.geoPath().projection(projection);
-    var graticule = d3.geoGraticule();
-
-    var svg = d3.select("#map").append("svg")
-      .attr("width", width)
-      .attr("height", height);
-     var g = svg.append('g')
-        .attr("width",innerWidth*0.6)
-        .attr("height",innerHeight*0.6)
-       svg.call(d3.zoom().on('zoom', () => {
-      g.attr('transform', d3.event.transform)
-                                              
-    }));
-
-    svg.append("path")
-      .datum(graticule)
-      .attr("class", "graticule")
-      .attr("d", path);
-
-   
-     
-    d3.select(self.frameElement).style("height", height + "px");
-
-    initiate();
-
-    async function initiate() {
-      worldData = await d3.json(mapFile).catch(console.log);
-      markerData = await d3.csv(dataFile, type).catch(console.log);
-      drawMap(worldData);
-      drawMarkers();
-    }
-
-    function type(d) {
-      d.latitude = +d.latitude;
-      d.longitude = +d.longitude;
-      return d;
-    }
-
-    function drawMap(mapData) {
-      var countries = topojson.feature(mapData, mapData.objects.polygons).features;
-      g.selectAll(".countries")
-        .data(countries)
-        .enter()
-        .insert("path", ".graticule")
-        .attr("d", path)
-        .attr("class", "map-font");
-    }
-
-    function drawMarkers() {
-      let data = markerData;
-      if (circles) circles.remove();
-      if (!markerData) return;
-      let company = companySelector.value;
-      let region  = regionSelector.value;
-
-       data = data.filter((d) => !company.length || d.companyName == company);
-       data = data.filter((d) => !(region.length) || d.region == region);
-
-      console.log("Filtered Data Length:", data.length, "company:", company, 'region:', region);
-
-      var tip = d3.tip()
-        .attr("class", "d3-tip")
-        .offset([-10, 0])
-        .html(function (d) {
-          delete d.latitude;
-          console.log(d);
-          delete d.longitude;
-          delete d.region;
-          document.getElementById('infoBox').innerHTML ="<p>word-wrap: break-word: "+
-                 Object.keys(d).map(key => `${key}: ${d[key]}`).join("\n")+ "</p>"
-          //return d.deviceId +
-            //"\n " + d.companyName +"\n " + d.soc + "\n " +d.odometer + "\n "+d.manufacturingDate + "\n " +d.OnRoadSince+"\n " +
-            //d.expiryDate;
-        });
-
-      g.call(tip);
-
-      var rScale = d3.scaleSqrt();
-
-      circles = g.selectAll("circle").data(data)
-        .enter().append("svg:circle")
-        .attr("cx", function (d) {
-          return projection([d[xColumn], d[yColumn]])[0];
-        })
-        .attr("cy", function (d) {
-          return projection([d[xColumn], d[yColumn]])[1];
-        })
-        .attr("r", 0.09)
-        .on("mouseover", tip.show)
-        .on("mouseout", tip.hide)
-        .attr("class", 'circle')
-
-      circles.exit().remove();
-    }
-  </script>
- 
 </body>
 
 </html>

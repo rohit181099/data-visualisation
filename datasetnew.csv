@@ -1,4 +1,4 @@
-deviceId,companyName,soc,Odometer,latitude,longitude,population,region,manufacturingDate,OnRoadSince,expiryDate
+DeviceId,Company_Name,SOC,Odometer,latitude,longitude,population,Region,Manufacturing_Date,On_Road_Since,Expiry_Date
 VIM-1,Evy Mobility,69.4529537,24.82506355,29.08499274,76.88600879,0,Delhi,4-Aug-19,5-Dec-19,7-Jan-43
 VIM-2,Napino-Hero,73.14818519,53.1441767,28.30485752,76.85997467,1,Delhi,3-Nov-19,7-Jan-20,5-Apr-44
 VIM-3,Napino-Bajaj,78.50250949,16.64343343,28.44092632,77.45689443,2,Delhi,26-Sep-19,11-Dec-19,17-Dec-42

@@ -1,4 +1,4 @@
-deviceId ,BatteryvoltageA,BatteryvoltageB,BatteryvoltageC,BatteryvoltageD,BatteryvoltageE,BatteryvoltageF,BatteryvoltageG,bv8,bv9,bv10,bv11,bv12,RPM,latitude,longitude,population,states
+DeviceId ,BatteryvoltageA,BatteryvoltageB,BatteryvoltageC,BatteryvoltageD,BatteryvoltageE,BatteryvoltageF,BatteryvoltageG,bv8,bv9,bv10,bv11,bv12,RPM,latitude,longitude,population,states
 "VIM_2.4_3	",4.01,4.06,4.11,4.07,4.04,4.09,4.08,4.14,4.05,4.14,4.13,4.09,0,18.987807,72.836447,10,Mumbai
 "VIM_2.4_4	",4.11,4.14,4.14,4.12,4.1,4.14,4.14,4.14,4.09,4.14,4.13,4.09,0,28.651952,77.231495,20,Delhi
 "VIM_2.4_5	",4.11,4.14,4.14,4.12,4.1,4.14,4.14,4.14,4.09,4.13,4.13,4.09,0,22.562627,88.363044,30,Kolkata

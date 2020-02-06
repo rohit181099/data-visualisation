@@ -1,4 +1,4 @@
-deviceId	comapnyName	expiry date	batteryVoltage	onRoadSince	RPM	latitude	longitude	population	manufacturingDate
+DeviceId	comapnyName	expiry date	batteryVoltage	onRoadSince	RPM	latitude	longitude	population	manufacturingDate
 VIM_2.4_3	A	25-Jun	4.01	May-90	0	28.6448	77.216721	10	Mar-90
 VIM_2.4_4	B	26-Jun	4.011	Jun-90	0	28.6333	77.2167	20	Mar-90
 VIM_2.4_5	C	27-Jun	4.012	May-90	0	28.6577	77.2167	30	Mar-90
