@@ -1,50 +1,64 @@
 <!DOCTYPE html>
 <html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Vecmocon Data visualization</title>
+		<script src="https://d3js.org/d3.v5.min.js"></script>
+		<script src="https://d3js.org/topojson.v2.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
+		<link
+			href="https://fonts.googleapis.com/css?family=Raleway"
+			rel="stylesheet"
+			type="text/css"
+		/>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<link
+			rel="stylesheet"
+			href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+			integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+			crossorigin="anonymous"
+		/>
+		<link rel="stylesheet" href="styles.css" />
+	</head>
 
-<head>
-  <meta charset="utf-8">
-  <title>Vecmocon Data visualization</title>
-  <script src="https://d3js.org/d3.v5.min.js"></script>
-  <script src="https://d3js.org/topojson.v2.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-tip/0.7.1/d3-tip.min.js"></script>
-  <link href="https://fonts.googleapis.com/css?family=Raleway" rel='stylesheet' type='text/css'>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-  <link rel="stylesheet" href="styles.css">
-</head>
-
-<body>
-  <div id="map">
-    <div id="infoBox">
-    </div>
-    <div id="imgbox">
-    </div>
-    <label style="color: white;">Choose a company</label>
-    <select class="company" name="company" id="company-selector">
-      <option value="">Default</option>
-      <option value="Vecmocon Technologies">Vecmocon Technologies</option>
-      <option value="Evy Mobility">Evy Mobility</option>
-      <option value="Napino-Hero">Napino-Hero</option>
-      <option value="Napino-Bajaj">Napino-Bajaj</option>
-      <option value="Vogo">Vogo</option>
-      <option value="Bounce Share">Bounce Share</option>
-      <option value="Qquick">Qquick</option>
-      <option value="Campus Share">Campus Share</option>
-      <option value="Q.Te Bikes">Q.Te Bikes</option>
-      <option value="Kerala Automotive Limited">Kerala Automotive Limited</option>
-    </select>
-    <label style="color: white;">Choose a Region</label>
-    <select name="region" id="Region-selector">
-      <option value="">Default</option>
-      <option value="Delhi">Delhi</option>
-      <option value="Kolkata">Kolkata</option>
-      <option value="Banglore">Banglore</option>
-      <option value="Hyderabad">Hyderabad</option>
-    </select>
-  </div>
-  <script src="main.js"></script>
-
-</body>
-
+	<body>
+		<div id="map">
+			<div id="infoBox"></div>
+			<div id="imgbox">
+				<img
+					src="tab.jpg"
+					height="80x"
+					width="250px"
+					style="vertical-align:middle"
+				/>
+			</div>
+			<label style="color: white;">Choose a company</label>
+			<select class="company" name="company" id="company-selector">
+				<option value="">Default</option>
+				<option value="Vecmocon Technologies"
+					>Vecmocon Technologies</option
+				>
+				<option value="Evy Mobility">Evy Mobility</option>
+				<option value="Napino-Hero">Napino-Hero</option>
+				<option value="Napino-Bajaj">Napino-Bajaj</option>
+				<option value="Vogo">Vogo</option>
+				<option value="Bounce Share">Bounce Share</option>
+				<option value="Qquick">Qquick</option>
+				<option value="Campus Share">Campus Share</option>
+				<option value="Q.Te Bikes">Q.Te Bikes</option>
+				<option value="Kerala Automotive Limited"
+					>Kerala Automotive Limited</option
+				>
+			</select>
+			<label style="color: white;">Choose a Region</label>
+			<select name="region" id="Region-selector">
+				<option value="">Default</option>
+				<option value="Delhi">Delhi</option>
+				<option value="Kolkata">Kolkata</option>
+				<option value="Banglore">Banglore</option>
+				<option value="Hyderabad">Hyderabad</option>
+			</select>
+		</div>
+		<script src="main.js"></script>
+	</body>
 </html>

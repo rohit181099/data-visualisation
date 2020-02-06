@@ -85,10 +85,10 @@ input {
 
 #imgbox {
   position: absolute;
-  top: 300;
-  border-radius: 30px;
-  right: 0;
-  height: 100px;
-  width: 300px;
+  bottom: 00;
+  border-radius: 120px;
+  right: 00;
+  height: 140px;
+  width: 360px;
   padding: 60px;
 }
